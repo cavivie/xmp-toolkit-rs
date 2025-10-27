@@ -282,8 +282,6 @@ fn main() {
                 .file("external/xmp_toolkit/XMPFiles/source/PluginHandler/OS_Utils_Mac.cpp");
 
             // iOS framework linking
-            println!("cargo:rustc-link-lib=framework=Carbon");
-            println!("cargo:rustc-link-lib=framework=Security");
             println!("cargo:rustc-link-lib=framework=CoreServices");
         }
 
