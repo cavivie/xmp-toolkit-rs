@@ -160,6 +160,48 @@ fn main() {
                 .file("external/xmp_toolkit/XMPFiles/source/PluginHandler/OS_Utils_Linux.cpp");
         }
 
+        "ios" => {
+            // Apply iOS support patch for ModuleUtils.h
+            apply_ios_patch();
+
+            expat_config
+                .define("XML_DEV_URANDOM", None)
+                .include("external/xmp_toolkit/XMPCore/resource/ios")
+                .include("external/xmp_toolkit/XMPFiles/resource/ios");
+
+            xmp_config
+                .define("IOS_ENV", "1")
+                .define("XMP_iOSBuild", "1")
+                .define("APPLE_IOS", "1")
+                .define("UNIX", "1")
+                .define("APPLE", "1")
+                .define("_LARGEFILE64_SOURCE", None)
+                .define("XML_DEV_URANDOM", None)
+                .flag("-std=c++17")
+                .flags(["-include", "CoreServices/CoreServices.h"])
+                .flag("-Wno-bitwise-instead-of-logical")
+                .flag("-Wno-deprecated-declarations")
+                .flag("-Wno-deprecated-register")
+                .flag("-Wno-int-in-bool-context")
+                .flag("-Wno-macro-redefined")
+                .flag("-Wno-null-conversion")
+                .flag("-Wno-unused-but-set-variable")
+                .flag("-fvisibility=hidden")
+                .flag("-fvisibility-inlines-hidden")
+                .flag("-fstack-protector")
+                .flag("-D_FORTIFY_SOURCE=2")
+                .flags(["-include", "CoreServices/CoreServices.h"])
+                .include("external/xmp_toolkit/XMPCore/resource/ios")
+                .include("external/xmp_toolkit/XMPFiles/resource/ios")
+                .file("external/xmp_toolkit/source/Host_IO-POSIX.cpp")
+                .file("external/xmp_toolkit/XMPFiles/source/PluginHandler/OS_Utils_Mac.cpp");
+
+            // iOS framework linking
+            println!("cargo:rustc-link-lib=framework=Carbon");
+            println!("cargo:rustc-link-lib=framework=Security");
+            println!("cargo:rustc-link-lib=framework=CoreServices");
+        }
+
         _ => {
             // See https://github.com/amethyst/rlua/blob/master/build.rs
             // for suggestions on how to handle other operating systems.
@@ -454,4 +496,44 @@ fn compile_for_docs() {
         .include("external/xmp_toolkit/XMPFilesPlugins/api/source")
         .file("src/ffi.cpp")
         .compile("xmp");
+}
+
+fn apply_ios_patch() {
+    let patch_file = "patches/ModuleUtils_ios_support.patch";
+    let target_file = "external/xmp_toolkit/XMPFiles/source/PluginHandler/ModuleUtils.h";
+
+    // Check if patch file exists
+    if !fs::metadata(patch_file).is_ok() {
+        println!(
+            "cargo:warning=Patch file {} not found, skipping iOS patch",
+            patch_file
+        );
+        return;
+    }
+
+    // Check if target file exists
+    if !fs::metadata(target_file).is_ok() {
+        println!(
+            "cargo:warning=Target file {} not found, skipping iOS patch",
+            target_file
+        );
+        return;
+    }
+
+    // Get absolute path to patch file
+    let patch_path = std::env::current_dir()
+        .unwrap()
+        .join(patch_file)
+        .to_string_lossy()
+        .to_string();
+
+    // Apply patch using git apply
+    let output = std::process::Command::new("git")
+        .args(["apply", "--ignore-whitespace", &patch_path])
+        .current_dir("external/xmp_toolkit")
+        .output();
+    if let Err(err) = output {
+        println!("cargo:warning=Error applying iOS patch: {}", err);
+        return;
+    }
 }

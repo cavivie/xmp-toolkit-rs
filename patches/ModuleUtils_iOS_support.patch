@@ -1,0 +1,15 @@
+diff --git a/XMPFiles/source/PluginHandler/ModuleUtils.h b/XMPFiles/source/PluginHandler/ModuleUtils.h
+index cadbb00..8a6f3d5 100644
+--- a/XMPFiles/source/PluginHandler/ModuleUtils.h
++++ b/XMPFiles/source/PluginHandler/ModuleUtils.h
+@@ -28,6 +28,10 @@ typedef void* OS_ModuleRef;
+ #elif XMP_AndroidBuild
+ #include <memory>
+ typedef void* OS_ModuleRef;
++#elif XMP_iOSBuild
++#include <CoreFoundation/CFBundle.h>
++#include <memory>
++typedef CFBundleRef OS_ModuleRef;
+ #else
+ #error	Unsupported operating system
+ #endif
