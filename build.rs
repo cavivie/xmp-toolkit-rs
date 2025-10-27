@@ -173,6 +173,11 @@ fn main() {
                 .define("XMP_AndroidBuild", "1")
                 .define("_LARGEFILE64_SOURCE", None)
                 .define("XML_DEV_URANDOM", None)
+                .cpp_link_stdlib(if cfg!(feature = "stl_shared") {
+                    "c++_shared"
+                } else {
+                    "c++_static"
+                })
                 .flag("-std=c++17")
                 .flag("-Wno-bitwise-instead-of-logical")
                 .flag("-Wno-deprecated-declarations")
@@ -200,49 +205,9 @@ fn main() {
                 xmp_config.flag("-mfpu=vfpv3-d16");
             }
 
-            // Android NDK specific optimizations
-            if let Ok(ndk_version) = env::var("ANDROID_NDK_VERSION") {
-                println!(
-                    "cargo:info=Building with Android NDK version: {}",
-                    ndk_version
-                );
-            }
-
             // Add Android-specific linking flags
             println!("cargo:rustc-link-arg=-Wl,--whole-archive");
             println!("cargo:rustc-link-arg=-Wl,--no-whole-archive");
-
-            // Android-specific library paths
-            if let Ok(ndk_root) = env::var("ANDROID_NDK_ROOT") {
-                // Detect the host platform for NDK toolchain
-                let host_platform = if cfg!(target_os = "macos") {
-                    "darwin-x86_64"
-                } else if cfg!(target_os = "linux") {
-                    "linux-x86_64"
-                } else if cfg!(target_os = "windows") {
-                    "windows-x86_64"
-                } else {
-                    "linux-x86_64" // fallback
-                };
-
-                // Add sysroot library path for Android
-                let android_arch = match target_arch.as_str() {
-                    "aarch64" => "aarch64-linux-android",
-                    "arm" => "arm-linux-androideabi",
-                    "armv7" => "arm-linux-androideabi",
-                    "x86_64" => "x86_64-linux-android",
-                    "i686" => "i686-linux-android",
-                    _ => &target_arch,
-                };
-                let sysroot_lib_path = format!(
-                    "{}/toolchains/llvm/prebuilt/{}/sysroot/usr/lib/{}",
-                    ndk_root, host_platform, android_arch
-                );
-                println!("cargo:rustc-link-search=native={}", sysroot_lib_path);
-            }
-
-            // Android STL linking - use c++_static for static linking
-            println!("cargo:rustc-link-lib=static=c++_static");
         }
 
         "ios" => {
