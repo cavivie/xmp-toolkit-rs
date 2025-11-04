@@ -82,6 +82,33 @@ jobs:
       - name: Run unit tests (cross build)
         run: cross test --all-targets --all-features --target ${{ matrix.target }}
 
+  test-ios:
+    name: Unit tests on iOS simulator
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.88.0
+          targets: aarch64-apple-ios-sim
+
+      - name: Install cross-compilation toolchain
+        run: cargo install cargo-dinghy
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run unit tests (cross build)
+        run: |
+          RUNTIME_ID=$(xcrun simctl list runtimes | grep iOS | cut -d ' ' -f 7 | tail -1)
+          export SIM_ID=$(xcrun simctl create My-iPhone11 com.apple.CoreSimulator.SimDeviceType.iPhone-11 $RUNTIME_ID)
+          xcrun simctl boot $SIM_ID
+          cargo dinghy --platform auto-ios-aarch64-sim test --all-targets --all-features
+
   test-default-disabled:
     name: Unit tests with default features disabled
     runs-on: ${{ matrix.os }}
