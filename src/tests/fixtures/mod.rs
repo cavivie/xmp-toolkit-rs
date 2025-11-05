@@ -17,14 +17,15 @@ use std::{
 };
 
 pub(crate) fn fixture_path(name: &str) -> String {
-    let root_dir = &env::var("CARGO_MANIFEST_DIR").unwrap();
-
-    let mut path = PathBuf::from(root_dir);
-    path.push("src/tests/fixtures");
-    path.push(name);
-
+    // On iOS, use dinghy_test to locate test data
+    #[cfg(target_os = "ios")]
+    let path = dinghy_test::test_file_path("fixtures").join(name);
+    // On other platforms, use CARGO_MANIFEST_DIR
+    #[cfg(not(target_os = "ios"))]
+    let path = PathBuf::from(&env::var("CARGO_MANIFEST_DIR").unwrap())
+        .join("src/tests/fixtures")
+        .join(name);
     assert!(path.exists());
-
     path.to_str().unwrap().to_string()
 }
 
