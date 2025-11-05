@@ -11,10 +11,7 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
 pub(crate) fn fixture_path(name: &str) -> String {
     // On iOS, use dinghy_test to locate test data
@@ -22,7 +19,9 @@ pub(crate) fn fixture_path(name: &str) -> String {
     let path = dinghy_test::test_file_path("fixtures").join(name);
     // On other platforms, use CARGO_MANIFEST_DIR
     #[cfg(not(target_os = "ios"))]
-    let path = PathBuf::from(&env::var("CARGO_MANIFEST_DIR").unwrap())
+    let path = std::env::var("CARGO_MANIFEST_DIR")
+        .map(|root_dir| std::path::PathBuf::from(root_dir))
+        .unwrap()
         .join("src/tests/fixtures")
         .join(name);
     assert!(path.exists());
