@@ -1,5 +1,0 @@
-# Configuration for cargo-dinghy
-
-[test_data]
-# This tells dinghy to copy test fixtures to the iOS simulator
-fixtures = "src/tests/fixtures"
