@@ -176,7 +176,6 @@ fn main() {
                 } else {
                     "c++_shared"
                 })
-                .flag("-std=c++17")
                 .flag("-Wno-bitwise-instead-of-logical")
                 .flag("-Wno-deprecated-declarations")
                 .flag("-Wno-deprecated-register")
@@ -210,6 +209,43 @@ fn main() {
             // Add Android-specific linking flags
             println!("cargo:rustc-link-arg=-Wl,--whole-archive");
             println!("cargo:rustc-link-arg=-Wl,--no-whole-archive");
+        }
+
+        "ios" => {
+            expat_config
+                .define("XML_DEV_URANDOM", None)
+                .include("external/xmp_toolkit/XMPCore/resource/ios")
+                .include("external/xmp_toolkit/XMPFiles/resource/ios");
+
+            xmp_config
+                .define("IOS_ENV", "1")
+                .define("XMP_iOSBuild", "1")
+                .define("APPLE_IOS", "1")
+                .define("UNIX", "1")
+                .define("APPLE", "1")
+                .define("_LARGEFILE64_SOURCE", None)
+                .define("XML_DEV_URANDOM", None)
+                .flag("-Wno-bitwise-instead-of-logical")
+                .flag("-Wno-deprecated-declarations")
+                .flag("-Wno-deprecated-register")
+                .flag("-Wno-int-in-bool-context")
+                .flag("-Wno-macro-redefined")
+                .flag("-Wno-null-conversion")
+                .flag("-Wno-unused-but-set-variable")
+                .flag("-fvisibility=hidden")
+                .flag("-fvisibility-inlines-hidden")
+                .flag("-fstack-protector")
+                .flag("-D_FORTIFY_SOURCE=2")
+                .flags(["-include", "CoreServices/CoreServices.h"])
+                .flags(["-include", "CoreFoundation/CoreFoundation.h"])
+                .include("external/xmp_toolkit/XMPCore/resource/ios")
+                .include("external/xmp_toolkit/XMPFiles/resource/ios")
+                .file("external/xmp_toolkit/source/Host_IO-POSIX.cpp")
+                .file("external/xmp_toolkit/XMPFiles/source/PluginHandler/OS_Utils_Mac.cpp");
+
+            // iOS framework linking
+            println!("cargo:rustc-link-lib=framework=CoreServices");
+            println!("cargo:rustc-link-lib=framework=CoreFoundation");
         }
 
         _ => {
