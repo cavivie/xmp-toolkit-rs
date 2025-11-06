@@ -20,13 +20,50 @@ pub(crate) fn fixture_path(name: &str) -> String {
 
     // On other platforms, use CARGO_MANIFEST_DIR as root path.
     #[cfg(not(target_os = "ios"))]
-    let root_dir = &std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let root_dir = std::path::PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
 
-    let mut path = std::path::PathBuf::from(root_dir);
+    let mut path = root_dir.clone();
     path.push("src/tests/fixtures");
     path.push(name);
 
-    assert!(path.exists());
+    // Debug output
+    println!("=== fixture_path DEBUG ===");
+    println!("root_dir: {}", root_dir.display());
+    println!("fixture name: {}", name);
+    println!("constructed path: {}", path.display());
+    println!("path exists: {}", path.exists());
+    
+    if !path.exists() {
+        println!("ERROR: Path does not exist!");
+        println!("Listing root_dir contents:");
+        if let Ok(entries) = fs::read_dir(&root_dir) {
+            for entry in entries.flatten() {
+                println!("  - {}", entry.file_name().to_string_lossy());
+            }
+        }
+        
+        let src_path = root_dir.join("src");
+        if src_path.exists() {
+            println!("Listing src/ contents:");
+            if let Ok(entries) = fs::read_dir(&src_path) {
+                for entry in entries.flatten() {
+                    println!("  - {}", entry.file_name().to_string_lossy());
+                }
+            }
+        }
+        
+        let fixtures_dir = root_dir.join("src/tests/fixtures");
+        if fixtures_dir.exists() {
+            println!("Listing src/tests/fixtures/ contents:");
+            if let Ok(entries) = fs::read_dir(&fixtures_dir) {
+                for entry in entries.flatten() {
+                    println!("  - {}", entry.file_name().to_string_lossy());
+                }
+            }
+        }
+    }
+    
+    assert!(path.exists(), "Fixture file not found: {}", path.display());
 
     path.to_str().unwrap().to_string()
 }
