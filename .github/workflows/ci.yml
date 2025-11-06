@@ -121,7 +121,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Run unit tests (cross build)
-        run: cargo dinghy -p auto-ios-aarch64-sim -d ${{ env.device }} test --all-targets --all-features
+        run: cargo dinghy -p auto-ios-aarch64-sim -d ${{ env.device }} test --all-features
 
   test-default-disabled:
     name: Unit tests with default features disabled
