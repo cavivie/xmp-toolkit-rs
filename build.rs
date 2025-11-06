@@ -174,7 +174,6 @@ fn main() {
                 .define("APPLE", "1")
                 .define("_LARGEFILE64_SOURCE", None)
                 .define("XML_DEV_URANDOM", None)
-                .flag("-std=c++17")
                 .flag("-Wno-bitwise-instead-of-logical")
                 .flag("-Wno-deprecated-declarations")
                 .flag("-Wno-deprecated-register")
