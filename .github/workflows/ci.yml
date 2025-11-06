@@ -118,6 +118,15 @@ jobs:
       - name: Run unit tests (cross build)
         run: DINGHY_LOG=trace cargo dinghy --platform auto-ios-aarch64-sim -d ${{ env.device }} test --all-targets --all-features -vvv
 
+      - name: Collect crash logs
+        if: always()
+        run: |
+          echo "=== Simulator System Log (last 50 lines with 'Dinghy') ==="
+          xcrun simctl spawn booted log show --last 1m --predicate 'eventMessage contains "Dinghy"' --style compact || echo "No logs"
+          echo ""
+          echo "=== Crash Reports ==="
+          ls -la ~/Library/Logs/DiagnosticReports/ | grep -i dinghy || echo "No crash reports"
+
   test-default-disabled:
     name: Unit tests with default features disabled
     runs-on: ${{ matrix.os }}
